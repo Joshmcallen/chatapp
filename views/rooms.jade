@@ -1,14 +1,21 @@
 extends layout
 
 block content
-        h1 Chat Rooms:
+        h1 Chat Rooms
+        a.btn.btn-primary(href="/admin/rooms/add") Create a New Chat Room
         table.table.table-striped
-          tbody
             thead
               tr
                 th  Name
                 th  ID
-            each room in rooms
-              tr
-                td= room.name
-                td = room._id
+            tbody
+              each room in rooms
+                tr
+                td
+                  a(href="/admin/rooms/edit/#{room.id}")
+                    button.btn.btn-default(type='button') EDIT
+                  td= room.name
+                  td= room.id
+                  td
+                    a(href="/admin/rooms/delete/#{room.id}")
+                      button.btn.btn-danger(type='button') DELETE
