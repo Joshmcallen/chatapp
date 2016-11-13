@@ -1,68 +1,64 @@
 var uuid = require("node-uuid");
 var _ = require('lodash');
+var express = require('express');
 var rooms = require('./data/rooms.json');
 
+var router = express.Router();
+module.exports = router;
 
-module.exports = function(app) {
+
 //VIEW CHATROOMS PAGE
-app.get('/admin/rooms', function(req, res){
+router.get('/rooms', function(req, res){
   res.render("rooms.jade", {
       title: "Admin Rooms",
       rooms: rooms
     });
 });
 
-//VIEW ADDROOMS PAGE
-app.get('/admin/rooms/add', function(req, res){
+//VIEW, POST TO ADDROOMS
+router.route('/rooms/add')
+.get(function(req, res){
   res.render("add");
-});
-
-//POST TO ADDROOMS PAGE
-app.post('/admin/rooms/add', function(req, res){
+})
+.post(function(req, res){
   var room = {
     name: req.body.name,
     id: uuid.v4()
   };
   rooms.push(room);
 
-  res.redirect("/admin/rooms");
+  res.redirect(req.baseUrl + "/rooms");
 });
 
-//DELETE ROOMS
-app.get('/admin/rooms/delete/:id', function(req, res){
-    var roomId = req.params.id;
-
-    rooms = rooms.filter(r => r.id !== roomId);
-
-    res.redirect("/admin/rooms");
-});
-
-//VIEW EDIT ROOMS, prepopulate form with room name to edit
-app.get('/admin/rooms/edit/:id', function(req, res){
+//EDIT ROOMS, prepopulate form with room name to edit
+router.route('/rooms/edit/:id')
+.all( function(req, res, next){
   var roomId = req.params.id;
-
   var room = _.find(rooms, r=> r.id === roomId);
   if (!room){
     res.sendStatus(404);
+    // next("something went wrong");
     return;
   }
+  res.locals.room = room;
+  next();
+})
+.get(function(req, res){
 
-  res.render("edit", {room});
+  res.render("edit");
+})
+.post(function(req, res){
+  res.locals.room.name = req.body.name;
+
+  res.redirect(req.baseUrl + "/rooms");
 });
 
-//POST TO EDIT ROOMS PAGE
-app.post('/admin/rooms/edit/:id', function(req, res){
-  var roomId = req.params.id;
 
-  var room = _.find(rooms, r => r.id === roomId);
-  if (!room){
-    res.sendStatus(404);
-    return;
-  }
+//DELETE ROOMS
+router.get('/rooms/delete/:id', function(req, res){
 
-  room.name = req.body.name;
+    var roomId = req.params.id;
+    rooms = rooms.filter(r => r.id !== roomId);
 
-  res.redirect("/admin/rooms");
+    res.redirect(req.baseUrl + "/rooms");
 });
-
-}
